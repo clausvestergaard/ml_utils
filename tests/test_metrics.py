@@ -8,6 +8,7 @@ from ml_tooling.metrics import (
     target_correlation,
     Metric,
     Metrics,
+    business_value,
 )
 from ml_tooling.metrics.utils import (
     _sort_values,
@@ -333,3 +334,77 @@ class TestCorrelation:
         y_values = np.array([10, 8, 13, 9, 11, 14, 6, 4, 12, 7, 5])
         corr = target_correlation(x_values, y_values)
         assert (corr.round(3) == 0.816).all()
+
+
+class TestBusinessValue:
+    def test_business_value_returns_exp_shape(self):
+        act_bvs = business_value(
+            np.array([1, 1, 1, 0, 0]), np.array([0.8, 0.9, 0.5, 0.6, 0.2])
+        )
+        exp_shape = (2, 5)
+        assert exp_shape == act_bvs.shape
+
+    @pytest.mark.parametrize(
+        "y_true, exp_bvs",
+        [
+            ((0, 0, 1, 1, 0, 0, 1, 1), (2, 4, 2, 2, 4, 2, 0)),
+            ((1, 1, 1, 1, 1, 1, 1, 1), (-6, -4, -2, 2, 4, 6, 8)),
+            ((0, 0, 0, 0, 1, 1, 1, 1), (2, 4, 6, 6, 4, 2, 0)),
+        ],
+    )
+    def test_business_value_returns_exp_values(self, y_true, exp_bvs):
+        y_proba = np.array([0.1, 0.2, 0.3, 0.4, 0.4, 0.5, 0.8, 0.9])
+        act_bvs = business_value(y_true, y_proba, normalized=False)
+        assert np.all(exp_bvs == act_bvs[1])
+
+    @pytest.mark.parametrize(
+        "X, exp_bvs",
+        [
+            ((0, 0, 0, 0), (0, 0, 0, 0)),
+            ((1, -1, 1, -1), (2, 4, 2, 0)),
+            ((5, -1, 1, -1), (6, 12, 10, 8)),
+        ],
+    )
+    def test_custom_values_for_tps_fps_tns_fns_returns_exp_values(self, X, exp_bvs):
+        y_true = np.array([0, 0, 1, 1])
+        y_proba = np.array([0.2, 0.4, 0.6, 0.8])
+
+        act_bvs = business_value(
+            y_true,
+            y_proba,
+            tp_value=X[0],
+            fp_value=X[1],
+            tn_value=X[2],
+            fn_value=X[3],
+            normalized=False,
+        )
+        assert np.all(exp_bvs == act_bvs[1])
+
+    def test_normalization_return_exp_values(self):
+        y_true = np.array([0, 0, 1, 1])
+        y_proba = np.array([0.2, 0.4, 0.6, 0.8])
+
+        exp_high = 1
+        exp_min = 0
+
+        act_bvs = business_value(y_true, y_proba, normalized=True)
+        act_high = np.max(act_bvs[1])
+        act_min = np.min(act_bvs[1])
+
+        assert exp_high == act_high
+        assert exp_min == act_min
+
+    def test_normalization_with_zero_high_value_returns_exp_exception(self):
+        y_true = np.array([0, 1, 0, 1])
+        y_proba = np.array([0.2, 0.2, 0.8, 0.8])
+
+        with pytest.raises(MetricError):
+            business_value(
+                y_true,
+                y_proba,
+                tp_value=1,
+                fp_value=-1,
+                tn_value=1,
+                fn_value=-1,
+                normalized=True,
+            )
