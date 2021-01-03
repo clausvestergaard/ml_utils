@@ -41,7 +41,7 @@ class TestBusinessValueCurve:
         y_true = classifier.result.plot._data.test_y
         x = classifier.result.plot._data.test_x
 
-        y_proba = classifier.estimator.predict_proba(x)[:, 1]
+        y_proba = classifier.result.estimator.predict_proba(x)[:, 1]
         thresh, bvs = business_value(y_true, y_proba)
 
         assert np.all(thresh == ax.lines[0].get_xdata())
