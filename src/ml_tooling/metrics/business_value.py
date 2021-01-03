@@ -50,8 +50,11 @@ def business_value(
     bv = np.sum(np.array([tps, fps, tns, fns]) * X, axis=0)
 
     if normalized:
-        if np.max(bv) != 0:
-            bv = bv / np.max(bv)
+        max_bv = np.max(bv)
+        if max_bv > 0:
+            bv = bv / max_bv
+        elif max_bv < 0:
+            bv = (bv / max_bv) ** -1
         else:
             raise MetricError(
                 "Highest business value is 0. Cannot normalize by this value."

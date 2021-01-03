@@ -344,16 +344,10 @@ class TestBusinessValue:
         exp_shape = (2, 5)
         assert exp_shape == act_bvs.shape
 
-    @pytest.mark.parametrize(
-        "y_true, exp_bvs",
-        [
-            ((0, 0, 1, 1, 0, 0, 1, 1), (2, 4, 2, 2, 4, 2, 0)),
-            ((1, 1, 1, 1, 1, 1, 1, 1), (-6, -4, -2, 2, 4, 6, 8)),
-            ((0, 0, 0, 0, 1, 1, 1, 1), (2, 4, 6, 6, 4, 2, 0)),
-        ],
-    )
-    def test_business_value_returns_exp_values(self, y_true, exp_bvs):
+    def test_business_value_without_normalization_returns_exp_values(self):
+        y_true = np.array([0, 0, 1, 1, 0, 0, 1, 1])
         y_proba = np.array([0.1, 0.2, 0.3, 0.4, 0.4, 0.5, 0.8, 0.9])
+        exp_bvs = (2, 4, 2, 2, 4, 2, 0)
         act_bvs = business_value(y_true, y_proba, normalized=False)
         assert np.all(exp_bvs == act_bvs[1])
 
@@ -380,21 +374,25 @@ class TestBusinessValue:
         )
         assert np.all(exp_bvs == act_bvs[1])
 
-    def test_normalization_return_exp_values(self):
-        y_true = np.array([0, 0, 1, 1])
-        y_proba = np.array([0.2, 0.4, 0.6, 0.8])
+    @pytest.mark.parametrize("X", [(1, -1, 1, -1), (1, -5, 1, -4)])
+    def test_normalization_highest_value_is_always_1(self, X):
+        y_true = np.array([0, 1, 1, 0, 1, 0, 1])
+        y_proba = np.array([0.2, 0.2, 0.4, 0.5, 0.6, 0.8, 0.8])
 
-        exp_high = 1
-        exp_min = 0
+        act_bvs = business_value(
+            y_true,
+            y_proba,
+            tp_value=X[0],
+            fp_value=X[1],
+            tn_value=X[2],
+            fn_value=X[3],
+            normalized=True,
+        )
 
-        act_bvs = business_value(y_true, y_proba, normalized=True)
         act_high = np.max(act_bvs[1])
-        act_min = np.min(act_bvs[1])
+        assert 1 == act_high
 
-        assert exp_high == act_high
-        assert exp_min == act_min
-
-    def test_normalization_with_zero_high_value_returns_exp_exception(self):
+    def test_normalization_with_zero_high_value_raises_exp_exception(self):
         y_true = np.array([0, 1, 0, 1])
         y_proba = np.array([0.2, 0.2, 0.8, 0.8])
 
