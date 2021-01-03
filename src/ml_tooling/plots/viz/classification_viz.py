@@ -7,6 +7,7 @@ from ml_tooling.plots import (
     plot_roc_auc,
     plot_lift_curve,
     plot_pr_curve,
+    plot_business_value,
 )
 from ml_tooling.utils import VizError, _classify
 from ml_tooling.plots.viz.baseviz import BaseVisualize
@@ -124,4 +125,24 @@ class ClassificationVisualize(BaseVisualize):
             y_proba = self._estimator.predict_proba(self._data.test_x)
             return plot_pr_curve(
                 self._data.test_y, y_proba, title=title, labels=labels, **kwargs
+            )
+
+    def business_value_curve(self, **kwargs) -> plt.Axes:
+        """
+        Visualize a business value curve for a classification estimator.
+        Estimator must implement a `predict_proba` method.
+
+        Returns
+        -------
+        plt.Axes
+            Plot of business value curve
+        """
+        if not hasattr(self._estimator, "predict_proba"):
+            raise VizError("Estimator must provide a 'predict_proba' method")
+
+        with plt.style.context(config.STYLE_SHEET):
+            title = f"Business Value - {self._estimator_name}"
+            y_proba = self._estimator.predict_proba(self._data.test_x)[:, 1]
+            return plot_business_value(
+                self._data.test_y, y_proba, title=title, **kwargs
             )
