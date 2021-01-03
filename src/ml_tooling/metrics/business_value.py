@@ -13,14 +13,14 @@ def business_value(
     fn_value: float = -1,
     normalized: bool = True,
 ) -> np.ndarray:
-    """Calculate business values for a range of classificaion thresholds.
+    """Calculate business values for a range of classification thresholds.
 
     Parameters
     ----------
     y_true : np.ndarray
         True labels
     y_proba : np.ndarray
-        Predicted probabilites for label being 1
+        Predicted probabilites for labels being 1
     tp_value : float, optional
         Business value of true positives, by default 1
     fp_value : float, optional
@@ -30,14 +30,14 @@ def business_value(
     fn_value : float, optional
         Business value of false negatives, by default -1
     normalized: bool, optional
-        Weheter to normalize business values relative to highest value
+        Whether to normalize business values relative to highest value, by default True
 
     Returns
     -------
     np.ndarray
         Array with thresholds, business values
     """
-    # calculate counts of fps, tps, fns, tns for all threshold-levels
+    # calculate counts of fps, tps, fns, tns for all thresholds
     fps, tps, threshold = _binary_clf_curve(y_true, y_proba)
 
     tns = fps[-1] - fps
@@ -46,7 +46,7 @@ def business_value(
     # vector with business values
     X = np.array([tp_value, fp_value, tn_value, fn_value]).reshape((4, 1))
 
-    # actual business value for each threshold-level
+    # actual business value for each threshold
     bv = np.sum(np.array([tps, fps, tns, fns]) * X, axis=0)
 
     if normalized:

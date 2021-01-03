@@ -16,7 +16,7 @@ def plot_business_value(
     ax: Axes = None,
     normalized: bool = True,
 ) -> Axes:
-    """Plot business value as a function of the classification threshold.
+    """Plot business value as a function of the classification thresholds.
 
     Parameters
     ----------
@@ -37,12 +37,12 @@ def plot_business_value(
     ax : Axes, optional
         Pass your own ax, by default None
     normalized : bool, optional
-        Whether to normalize by highest business value, by default True
+        Whether to normalize business values relative to highest value, by default True
 
     Returns
     -------
     plt.Axes
-        Returns a plot of business value for a range of classification thresholds.
+        Returns a plot of business values for a range of classification thresholds.
     """
     title = "Business value" if title is None else title
 
@@ -55,7 +55,7 @@ def plot_business_value(
 
     ax.step(x=thresholds, y=bvs, where="post")
 
-    ax.set_ylabel("Normalized Business Value" if normalized else "Busineses Value")
+    ax.set_ylabel("Normalized Business Value" if normalized else "Business Value")
     ax.set_xlabel("Threshold")
     ax.set_title(title)
 
