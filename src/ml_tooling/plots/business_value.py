@@ -53,7 +53,7 @@ def plot_business_value(
     if ax is None:
         fig, ax = plt.subplots()
 
-    ax.step(x=thresholds, y=bvs, where="pre")
+    ax.step(x=thresholds, y=bvs, where="post")
 
     ax.set_ylabel("Normalized Business Value" if normalized else "Busineses Value")
     ax.set_xlabel("Threshold")
